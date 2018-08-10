@@ -21,7 +21,7 @@
     "precommit": "kleros-scripts precommit",
     "commitmsg": "kleros-scripts commitmsg",
     "cz": "kleros-scripts cz",
-    "start": "node ./index.js"
+    "start": "env-cmd ./.env node ./index.js"
   },
   "commitlint": {
     "extends": [
@@ -29,11 +29,13 @@
     ]
   },
   "devDependencies": {
+    "env-cmd": "^8.0.2",
     "husky": "^0.14.3",
     "kleros-scripts": "^0.10.0",
     "standard-version": "^4.4.0"
   },
   "dependencies": {
-    "commander": "^2.17.1"
+    "commander": "^2.17.1",
+    "web3": "^1.0.0-beta.35"
   }
 }

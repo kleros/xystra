@@ -3,6 +3,9 @@
 # Dependencies
 /node_modules/
 
+# Environment Variables
+/.env
+
 # Logs
 /yarn-debug.log*
 /yarn-error.log*
