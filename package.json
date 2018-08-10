@@ -23,9 +23,17 @@
     "cz": "kleros-scripts cz",
     "start": "node ./index.js"
   },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  },
   "devDependencies": {
     "husky": "^0.14.3",
     "kleros-scripts": "^0.10.0",
     "standard-version": "^4.4.0"
+  },
+  "dependencies": {
+    "commander": "^2.17.1"
   }
 }
