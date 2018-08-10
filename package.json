@@ -1,0 +1,31 @@
+{
+  "name": "kleros-contract-scrapers",
+  "version": "0.0.1",
+  "description": "A collection of data scrapers for various Kleros smart contracts.",
+  "keywords": [
+    "blockchain",
+    "ethereum",
+    "smart-contract",
+    "scraper",
+    "kleros"
+  ],
+  "repository": "https://github.com/kleros/kleros-contract-scrapers",
+  "author": "Kleros",
+  "license": "MIT",
+  "private": false,
+  "bin": "./index.js",
+  "scripts": {
+    "prettify": "kleros-scripts prettify",
+    "lint": "kleros-scripts lint:js",
+    "test": "echo \"No tests specified.\"",
+    "precommit": "kleros-scripts precommit",
+    "commitmsg": "kleros-scripts commitmsg",
+    "cz": "kleros-scripts cz",
+    "start": "node ./index.js"
+  },
+  "devDependencies": {
+    "husky": "^0.14.3",
+    "kleros-scripts": "^0.10.0",
+    "standard-version": "^4.4.0"
+  }
+}
