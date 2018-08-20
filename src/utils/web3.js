@@ -10,6 +10,7 @@ module.exports.fetchList = async method => {
   while (true)
     try {
       list.push(await method(i++).call())
+      console.log(`Fetched list item #${i}.`)
     } catch (err) {
       if (err.message.slice(0, "Couldn't decode".length) !== "Couldn't decode")
         throw err

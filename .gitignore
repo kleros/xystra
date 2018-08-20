@@ -6,6 +6,9 @@
 # Environment Variables
 /.env
 
+# Production
+/**/*.csv
+
 # Logs
 /yarn-debug.log*
 /yarn-error.log*
