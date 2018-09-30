@@ -1,4 +1,5 @@
 const Web3 = require('web3')
+const fetch = require('isomorphic-fetch')
 
 module.exports.web3 = new Web3(
   new Web3.providers.HttpProvider(process.env.ETHEREUM_PROVIDER)
@@ -18,10 +19,10 @@ module.exports.fetchList = async method => {
     }
 }
 
-module.exports.getTransactions = async (address, functionSignature) => {
-  const functionSignatureHash = module.exports.web3.utils.keccak256(
-    functionSignature
-  )
+module.exports.fetchTransactions = async (address, functionSignature) => {
+  const functionSignatureHash = module.exports.web3.utils
+    .keccak256(functionSignature)
+    .slice(0, 10)
 
   const transactions = []
   const pageSize = 10000
