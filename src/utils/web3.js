@@ -17,3 +17,30 @@ module.exports.fetchList = async method => {
       return list
     }
 }
+
+module.exports.getTransactions = async (address, functionSignature) => {
+  const functionSignatureHash = module.exports.web3.utils.keccak256(
+    functionSignature
+  )
+
+  const transactions = []
+  const pageSize = 10000
+  let page = 0
+  let lastNumberOfResults = 0
+  while (lastNumberOfResults === pageSize || page === 0) {
+    const results = (await (await fetch(
+      `https://api.etherscan.io/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&page=${page}&offset=${pageSize}&sort=asc&apikey=${
+        process.env.ETHERSCAN_API_KEY
+      }`
+    )).json()).result
+
+    lastNumberOfResults = results.length
+    transactions.push(...results)
+    page++
+  }
+
+  return transactions.filter(
+    t =>
+      t.input.slice(0, functionSignatureHash.length) === functionSignatureHash
+  )
+}
