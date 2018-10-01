@@ -27,7 +27,7 @@ module.exports.fetchTransactions = async (address, functionSignature) => {
   const transactions = []
   const pageSize = 10000
   let page = 0
-  let lastNumberOfResults = 0
+  let lastNumberOfResults
   while (lastNumberOfResults === pageSize || page === 0) {
     const results = (await (await fetch(
       `https://api.etherscan.io/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&page=${page}&offset=${pageSize}&sort=asc&apikey=${

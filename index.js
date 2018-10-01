@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 const commander = require('commander')
 
+const scrapeKlerosTokenActivation = require('./src/scrapers/kleros-token-activation')
 const scrapeArbitrablePermissionList = require('./src/scrapers/arbitrable-permission-list')
 
 // Validation
@@ -12,6 +13,14 @@ const validateETHAddress = address => {
 
 // Globals
 commander.version(require('./package.json').version)
+
+// Kleros Token Activation
+commander
+  .command('kleros-token-activation <address>')
+  .action(
+    address =>
+      validateETHAddress(address) && scrapeKlerosTokenActivation(address)
+  )
 
 // Arbitrable Permission List
 commander
