@@ -1,5 +1,5 @@
 {
-  "name": "kleros-contract-scrapers",
+  "name": "@kleros/xystra",
   "version": "0.1.0",
   "description": "A collection of data scrapers for various Kleros smart contracts.",
   "keywords": [
@@ -9,7 +9,7 @@
     "scraper",
     "kleros"
   ],
-  "repository": "https://github.com/kleros/kleros-contract-scrapers",
+  "repository": "https://github.com/kleros/xystra",
   "author": "Kleros",
   "license": "MIT",
   "private": false,
