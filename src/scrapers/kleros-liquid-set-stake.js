@@ -7,36 +7,27 @@ const KlerosLiquid = require('../assets/contracts/kleros-liquid.json')
 
 module.exports = async address => {
   // Initialize contracts
-  const kleros = new web3.eth.Contract(KlerosLiquid.abi, address)
+  const klerosLiquid = new web3.eth.Contract(KlerosLiquid.abi, address)
   console.info('Contracts initialized.')
 
   // Initialize file and rows
   const outStream = fs.createWriteStream(
-    `./kleros-athena-set-stake-${address}.csv`
+    `./kleros-liquid-set-stake-${address}.csv`
   )
-  const rows = [['address', 'subcourtID', 'stake', 'newTotalStake']]
+  const rows = [['address', 'subcourtID', 'stake(PNK)', 'newTotalStake(PNK)']]
 
-  const events = await kleros.getPastEvents('StakeSet', {
+  const events = await klerosLiquid.getPastEvents('StakeSet', {
     fromBlock: 0
   })
 
-  console.log(events)
-
-  console.info(`${events.length} StakeSet event found.`)
-
-  // const transactions = await fetchTransactions(
-  //   address,
-  //   'setStake(uint96,uint128)'
-  // )
-  //
-  // console.info(`${transactions.length} transactions found.`)
+  console.info(`${events.length} StakeSet events found.`)
 
   for (const event of events)
     rows.push([
       event.returnValues._address,
       event.returnValues._subcourtID,
-      event.returnValues._stake,
-      event.returnValues._newTotalStake
+      event.returnValues._stake / 1e18,
+      event.returnValues._newTotalStake / 1e18
     ])
 
   // Write to file

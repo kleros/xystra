@@ -3,7 +3,7 @@ const commander = require('commander')
 
 const scrapeKlerosTokenActivation = require('./src/scrapers/kleros-token-activation')
 const scrapeArbitrablePermissionList = require('./src/scrapers/arbitrable-permission-list')
-const scrapeKlerosAthenaSetStake = require('./src/scrapers/kleros-athena-set-stake')
+const scrapeKlerosLiquidSetStake = require('./src/scrapers/kleros-liquid-set-stake')
 
 // Validation
 const validateETHAddress = address => {
@@ -31,11 +31,12 @@ commander
       validateETHAddress(address) && scrapeArbitrablePermissionList(address)
   )
 
+// Kleros Liquid Set Stake
 commander
-  .command('kleros-athena-set-stake <address>')
+  .command('kleros-liquid-set-stake <address>')
   .action(
     address =>
-      validateETHAddress(address) && scrapeKlerosAthenaSetStake(address)
+      validateETHAddress(address) && scrapeKlerosLiquidSetStake(address)
   )
 
 // Handle unknown commands
