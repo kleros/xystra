@@ -2,7 +2,7 @@ const Web3 = require('web3')
 const fetch = require('isomorphic-fetch')
 
 module.exports.web3 = new Web3(
-  new Web3.providers.HttpProvider(process.env.ETHEREUM_HTTP_PROVIDER_URL)
+  new Web3.providers.HttpProvider(process.env.ETH_PROVIDER)
 )
 
 module.exports.fetchList = async method => {
