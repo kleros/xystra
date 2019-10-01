@@ -2,7 +2,7 @@ const fs = require('fs')
 
 const csv = require('csv')
 
-const { web3, fetchList } = require('../utils/web3')
+const { fetchList, web3 } = require('../utils/web3')
 const ArbitrablePermissionList = require('../assets/contracts/arbitrable-permission-list.json')
 const Kleros = require('../assets/contracts/kleros.json')
 

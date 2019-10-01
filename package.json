@@ -15,12 +15,12 @@
   "private": false,
   "bin": "./index.js",
   "scripts": {
-    "prettify": "kleros-scripts prettify",
-    "lint": "kleros-scripts lint:js",
+    "prettify": "kathari prettify",
+    "lint": "kathari lint:js",
     "test": "echo \"No tests specified.\"",
-    "precommit": "kleros-scripts precommit",
-    "commitmsg": "kleros-scripts commitmsg",
-    "cz": "kleros-scripts cz",
+    "precommit": "kathari precommit",
+    "commitmsg": "kathari commitmsg",
+    "cz": "kathari cz",
     "start": "env-cmd ./.env node ./index.js"
   },
   "commitlint": {
@@ -28,13 +28,19 @@
       "@commitlint/config-conventional"
     ]
   },
+  "husky": {
+    "hooks": {
+      "pre-commit": "kathari precommit",
+      "commit-msg": "kathari commitmsg"
+    }
+  },
   "devDependencies": {
     "env-cmd": "^8.0.2",
-    "husky": "^0.14.3",
-    "kleros-scripts": "^0.10.0",
+    "husky": "1.1.4",
     "standard-version": "^4.4.0"
   },
   "dependencies": {
+    "@kleros/kathari": "^0.25.0",
     "commander": "^2.17.1",
     "csv": "^3.1.0",
     "isomorphic-fetch": "^2.2.1",
