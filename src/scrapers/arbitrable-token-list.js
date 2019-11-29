@@ -1,25 +1,35 @@
 const _ = require('lodash')
 const assert = require('assert')
-
+const EthDater = require('ethereum-block-by-date')
 const { web3 } = require('../utils/web3')
 const ArbitrableTokenList = require('../assets/contracts/arbitrable-token-list.json')
 
-module.exports = async address => {
+module.exports = async (address, date) => {
   // Initialize contracts
   const arbitrableTokenList = new web3.eth.Contract(
     ArbitrableTokenList,
     address
   )
 
-  const events = await arbitrableTokenList.getPastEvents('TokenStatusChange', {
-    fromBlock: 0
-  })
+  const dater = new EthDater(
+    web3 // Web3 object, required.
+  )
 
-  const onlySubmitted = _.filter(events, function(event) {
-    return event.returnValues[3] === 1
+  const dateBlockPair = await dater.getDate(
+    date, // Date, required. Any valid moment.js value: string, milliseconds, Date() object, moment() object.
+    true // Block after, optional. Search for the nearest block before or after the given date. By default true.
+  )
+
+  const events = await arbitrableTokenList.getPastEvents('TokenStatusChange', {
+    filter: {
+      status: '1'
+    },
+    fromBlock: dateBlockPair.block
   })
+  console.log(`${events.length} TokenStatusChange events fetched.`)
+
   const onlySubmittedTokenIDs = Object.keys(
-    _.groupBy(onlySubmitted.map(e => e.returnValues[2]))
+    _.groupBy(events.map(e => e.returnValues[2]))
   )
 
   const tokenInfos = await Promise.all(
@@ -27,7 +37,9 @@ module.exports = async address => {
       arbitrableTokenList.methods.getTokenInfo(t).call()
     )
   )
-  const registeredTokens = tokenInfos.filter(token => token.status === 1)
+  console.log('getTokenInfo calls made.')
+
+  const registeredTokens = tokenInfos.filter(token => token.status === '1')
   const registeredTokensSymbols = registeredTokens.map(r => r.symbolMultihash)
 
   console.log(`Number of registeredTokens: ${registeredTokens.length}`)
@@ -35,9 +47,10 @@ module.exports = async address => {
   const tokenSubmittedEvents = await arbitrableTokenList.getPastEvents(
     'TokenSubmitted',
     {
-      fromBlock: 0
+      fromBlock: dateBlockPair.block
     }
   )
+  console.log('tokenSubmitted events fetched.')
 
   const tokenSubmittedEventsOfRegisteredTokens = tokenSubmittedEvents.filter(
     e => registeredTokensSymbols.includes(e.returnValues._symbolMultihash)

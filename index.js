@@ -42,9 +42,10 @@ commander
   )
 
 commander
-  .command('arbitrable-token-list <address>')
+  .command('arbitrable-token-list <address> <date>')
   .action(
-    address => validateETHAddress(address) && scrapeArbitrableTokenList(address)
+    (address, date) =>
+      validateETHAddress(address) && scrapeArbitrableTokenList(address, date)
   )
 
 commander
