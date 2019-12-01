@@ -49,10 +49,10 @@ commander
   )
 
 commander
-  .command('arbitrable-address-list <address>')
+  .command('arbitrable-address-list <address> <date>')
   .action(
-    address =>
-      validateETHAddress(address) && scrapeArbitrableAddressList(address)
+    (address, date) =>
+      validateETHAddress(address) && scrapeArbitrableAddressList(address, date)
   )
 
 // Handle unknown commands

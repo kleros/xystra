@@ -1,49 +1,114 @@
 const _ = require('lodash')
-
+const assert = require('assert')
+const EthDater = require('ethereum-block-by-date')
 const { web3 } = require('../utils/web3')
-const arbitrableAddressList = require('../assets/contracts/arbitrable-address-list.json')
+const ArbitrableAddressList = require('../assets/contracts/arbitrable-address-list.json')
 
-module.exports = async address => {
+module.exports = async (address, date) => {
   // Initialize contracts
-  const contract = new web3.eth.Contract(arbitrableAddressList, address)
+  const arbitrableAddressList = new web3.eth.Contract(
+    ArbitrableAddressList,
+    address
+  )
 
-  const bountyStart = new Date('3 June 2019').getTime() / 1000
-  const bountyEnd = new Date('3 September 2019').getTime() / 1000
+  const dater = new EthDater(
+    web3 // Web3 object, required.
+  )
 
-  const events = await contract.getPastEvents('AddressSubmitted', {
-    fromBlock: 0
-  })
-  const addressStatuses = await Promise.all(
-    events.map(event =>
-      contract.methods.addresses(event.returnValues._address).call()
+  const dateBlockPair = await dater.getDate(
+    date, // Date, required. Any valid moment.js value: string, milliseconds, Date() object, moment() object.
+    true // Block after, optional. Search for the nearest block before or after the given date. By default true.
+  )
+
+  const events = await arbitrableAddressList.getPastEvents(
+    'AddressStatusChange',
+    {
+      filter: {
+        status: '1'
+      },
+      fromBlock: dateBlockPair.block
+    }
+  )
+  console.log(`${events.length} AddressStatusChange events fetched.`)
+  const onlySubmittedAddresses = Object.keys(
+    _.groupBy(events.map(e => e.returnValues[2]))
+  )
+
+  const tokenInfos = await Promise.all(
+    onlySubmittedAddresses.map(t =>
+      arbitrableAddressList.methods.getAddressInfo(t).call()
     )
   )
 
-  const blockNumbers = events.map(event => event.blockNumber)
-  const timestamps = await Promise.all(
-    blockNumbers.map(
-      async blocknumber => (await web3.eth.getBlock(blocknumber)).timestamp
-    )
+  const submittedAddressesWithInfos = _.zipObject(
+    onlySubmittedAddresses,
+    tokenInfos
   )
 
-  const filteredEvents = events.filter(function(_, index) {
-    return (
-      addressStatuses[index] === '1' &&
-      timestamps[index] > bountyStart &&
-      timestamps[index] < bountyEnd
+  Object.filter = (obj, predicate) =>
+    Object.assign(
+      ...Object.keys(obj)
+        .filter(key => predicate(obj[key]))
+        .map(key => ({ [key]: obj[key] }))
     )
-  })
 
-  const txHashes = filteredEvents.map(event => event.transactionHash)
+  var registeredAddressesWithInfos = Object.filter(
+    submittedAddressesWithInfos,
+    result => result.status === '1'
+  )
+  console.log('getAddressInfo calls made.')
+
+  console.log(
+    `Number of registeredAddresses: ${
+      Object.keys(registeredAddressesWithInfos).length
+    }`
+  )
+
+  const tokenSubmittedEvents = await arbitrableAddressList.getPastEvents(
+    'AddressSubmitted',
+    {
+      fromBlock: dateBlockPair.block
+    }
+  )
+  console.log('addressSubmitted events fetched.')
+
+  const tokenSubmittedEventsOfRegisteredTokens = tokenSubmittedEvents.filter(
+    e =>
+      Object.keys(registeredAddressesWithInfos).includes(
+        e.returnValues._address
+      )
+  )
+
+  const lastTokenSubmittedEventsOfRegisteredTokens = tokenSubmittedEventsOfRegisteredTokens.reduce(
+    function(acc, cur) {
+      const search = acc.findIndex(
+        e => e.returnValues._address === cur.returnValues._address
+      )
+      if (search === -1) return acc.concat(cur)
+      else {
+        if (acc[search].blockNumber < cur.blockNumber) acc[search] = cur
+        return acc
+      }
+    },
+    []
+  )
+
+  const txHashes = lastTokenSubmittedEventsOfRegisteredTokens.map(
+    event => event.transactionHash
+  )
+
   const txs = await Promise.all(
     txHashes.map(hash => web3.eth.getTransaction(hash))
   )
+
   const fromAddresses = txs.map(tx => tx.from)
 
-  console.log(
-    `Addresses and number of accepted erc20 submissions between ${new Date(
-      bountyStart * 1000
-    )} and ${new Date(bountyEnd * 1000)}`
-  )
   console.log(_.countBy(fromAddresses))
+  assert.strictEqual(
+    fromAddresses.length,
+    Object.keys(registeredAddressesWithInfos).length,
+    `Number of registered addresses ${
+      Object.keys(registeredAddressesWithInfos).length
+    } doesn't match number of eligible transactions ${fromAddresses.length}.`
+  )
 }
