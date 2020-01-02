@@ -51,15 +51,16 @@ module.exports = async (address, fromDate, toDate) => {
   const registeredTokens = tokenInfos.filter(token => token.status == '1')
   console.log(`${registeredTokens.length} of them are registered.`)
   // console.log(registeredTokens.map(r => r.name).sort());
+
+  console.log(
+    '---------------------------------------------------------------------'
+  )
   const tokenSubmittedEvents = await arbitrableTokenList.getPastEvents(
     'TokenSubmitted',
     {
       fromBlock: 7303699, // KlerosLiquid Deployment
       toBlock: toDateBlockPair.block
     }
-  )
-  console.log(
-    '---------------------------------------------------------------------'
   )
   console.log(
     `${tokenSubmittedEvents.length} TokenSubmittedEvents emitted up till ${toDateBlockPair.block} (${toDateBlockPair.date}).`
