@@ -1,10 +1,12 @@
+/* eslint-disable eqeqeq */
+
 const _ = require('lodash')
 const assert = require('assert')
 const EthDater = require('ethereum-block-by-date')
 const { web3 } = require('../utils/web3')
 const ArbitrableTokenList = require('../assets/contracts/arbitrable-token-list.json')
 
-module.exports = async (address, date) => {
+module.exports = async (address, fromDate, toDate) => {
   // Initialize contracts
   const arbitrableTokenList = new web3.eth.Contract(
     ArbitrableTokenList,
@@ -15,63 +17,69 @@ module.exports = async (address, date) => {
     web3 // Web3 object, required.
   )
 
-  const dateBlockPair = await dater.getDate(
-    date, // Date, required. Any valid moment.js value: string, milliseconds, Date() object, moment() object.
+  const fromDateBlockPair = await dater.getDate(
+    fromDate, // Date, required. Any valid moment.js value: string, milliseconds, Date() object, moment() object.
     true // Block after, optional. Search for the nearest block before or after the given date. By default true.
   )
 
-  const events = await arbitrableTokenList.getPastEvents('TokenStatusChange', {
-    filter: {
-      status: '1'
-    },
-    fromBlock: dateBlockPair.block
-  })
-  console.log(`${events.length} TokenStatusChange events fetched.`)
-
-  const onlySubmittedTokenIDs = Object.keys(
-    _.groupBy(events.map(e => e.returnValues[2]))
+  const toDateBlockPair = await dater.getDate(
+    toDate, // Date, required. Any valid moment.js value: string, milliseconds, Date() object, moment() object.
+    true // Block after, optional. Search for the nearest block before or after the given date. By default true.
   )
+
+  console.log(
+    `Calculating from ${fromDateBlockPair.block} (${fromDateBlockPair.date}) to ${toDateBlockPair.block} (${toDateBlockPair.date}).`
+  )
+
+  const events = (await arbitrableTokenList.getPastEvents('TokenStatusChange', {
+    fromBlock: fromDateBlockPair.block,
+    toBlock: toDateBlockPair.block
+  })).filter(events => events.returnValues._status == '2')
+  console.log(
+    `${events.length} TokenStatusChange events that request registration fetched, in given time frame.`
+  )
+
+  const distinctTokens = Object.keys(
+    _.groupBy(events.map(e => e.returnValues._tokenID))
+  )
+  console.log(`These events contain ${distinctTokens.length} distinct tokens.`)
 
   const tokenInfos = await Promise.all(
-    onlySubmittedTokenIDs.map(t =>
-      arbitrableTokenList.methods.getTokenInfo(t).call()
-    )
+    distinctTokens.map(t => arbitrableTokenList.methods.getTokenInfo(t).call())
   )
-  console.log('getTokenInfo calls made.')
 
-  const registeredTokens = tokenInfos.filter(token => token.status === '1')
-  const registeredTokensSymbols = registeredTokens.map(r => r.symbolMultihash)
-
-  console.log(`Number of registeredTokens: ${registeredTokens.length}`)
-
+  const registeredTokens = tokenInfos.filter(token => token.status == '1')
+  console.log(`${registeredTokens.length} of them are registered.`)
+  // console.log(registeredTokens.map(r => r.name).sort());
   const tokenSubmittedEvents = await arbitrableTokenList.getPastEvents(
     'TokenSubmitted',
     {
-      fromBlock: dateBlockPair.block
+      fromBlock: 7303699, // KlerosLiquid Deployment
+      toBlock: toDateBlockPair.block
     }
   )
-  console.log('tokenSubmitted events fetched.')
+  console.log(
+    '---------------------------------------------------------------------'
+  )
+  console.log(
+    `${tokenSubmittedEvents.length} TokenSubmittedEvents emitted up till ${toDateBlockPair.block} (${toDateBlockPair.date}).`
+  )
 
   const tokenSubmittedEventsOfRegisteredTokens = tokenSubmittedEvents.filter(
-    e => registeredTokensSymbols.includes(e.returnValues._symbolMultihash)
-  )
-
-  const lastTokenSubmittedEventsOfRegisteredTokens = tokenSubmittedEventsOfRegisteredTokens.reduce(
-    function(acc, cur) {
-      const search = acc.findIndex(
-        e =>
-          e.returnValues._symbolMultihash === cur.returnValues._symbolMultihash
+    e =>
+      registeredTokens.find(
+        element =>
+          element.name == e.returnValues._name &&
+          element.addr == e.returnValues._address &&
+          element.symbolMultihash == e.returnValues._symbolMultihash &&
+          element.ticker == e.returnValues._ticker
       )
-      if (search === -1) return acc.concat(cur)
-      else {
-        if (acc[search].blockNumber < cur.blockNumber) acc[search] = cur
-        return acc
-      }
-    },
-    []
+  )
+  console.log(
+    `${tokenSubmittedEventsOfRegisteredTokens.length} of them belongs to registered tokens.`
   )
 
-  const txHashes = lastTokenSubmittedEventsOfRegisteredTokens.map(
+  const txHashes = tokenSubmittedEventsOfRegisteredTokens.map(
     event => event.transactionHash
   )
 
@@ -84,8 +92,12 @@ module.exports = async (address, date) => {
   assert.strictEqual(
     fromAddresses.length,
     registeredTokens.length,
-    "Number of registered tokens doesn't match number of eligible transactions."
+    `Number of registered tokens ${registeredTokens.length} doesn't match number of eligible transactions ${fromAddresses.length}.`
+  )
+  const countPerAddress = _.countBy(fromAddresses)
+  const sortedCountPerAddress = Object.entries(countPerAddress).sort(
+    (a, b) => b[1] - a[1]
   )
 
-  console.log(_.countBy(fromAddresses))
+  console.log(sortedCountPerAddress)
 }

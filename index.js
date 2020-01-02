@@ -42,17 +42,19 @@ commander
   )
 
 commander
-  .command('arbitrable-token-list <address> <date>')
+  .command('arbitrable-token-list <address> <fromDate> <toDate>')
   .action(
-    (address, date) =>
-      validateETHAddress(address) && scrapeArbitrableTokenList(address, date)
+    (address, fromDate, toDate) =>
+      validateETHAddress(address) &&
+      scrapeArbitrableTokenList(address, fromDate, toDate)
   )
 
 commander
-  .command('arbitrable-address-list <address> <date>')
+  .command('arbitrable-address-list <address> <fromDate> <toDate>')
   .action(
-    (address, date) =>
-      validateETHAddress(address) && scrapeArbitrableAddressList(address, date)
+    (address, fromDate, toDate) =>
+      validateETHAddress(address) &&
+      scrapeArbitrableAddressList(address, fromDate, toDate)
   )
 
 // Handle unknown commands
