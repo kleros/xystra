@@ -1,5 +1,5 @@
 const fs = require('fs')
-
+const _ = require('lodash')
 const csv = require('csv')
 
 const { web3 } = require('../utils/web3')
@@ -21,6 +21,18 @@ module.exports = async address => {
   })
 
   console.info(`${events.length} StakeSet events found.`)
+
+  console.log(
+    `Number of jurors staked to the court: ${
+      Object.keys(
+        _.countBy(
+          events
+            .filter(e => e.returnValues._newTotalStake > 0)
+            .map(event => event.returnValues._address)
+        )
+      ).length
+    }`
+  )
 
   for (const event of events)
     rows.push([

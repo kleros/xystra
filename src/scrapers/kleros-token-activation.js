@@ -2,7 +2,7 @@ const fs = require('fs')
 
 const csv = require('csv')
 
-const { web3, fetchTransactions } = require('../utils/web3')
+const { fetchTransactions, web3 } = require('../utils/web3')
 const Kleros = require('../assets/contracts/kleros.json')
 
 module.exports = async address => {

@@ -2,7 +2,9 @@ const Web3 = require('web3')
 const fetch = require('isomorphic-fetch')
 
 module.exports.web3 = new Web3(
-  new Web3.providers.HttpProvider(process.env.ETHEREUM_PROVIDER)
+
+  new Web3.providers.HttpProvider(process.env.ETH_PROVIDER)
+
 )
 
 module.exports.fetchList = async method => {
@@ -30,9 +32,7 @@ module.exports.fetchTransactions = async (address, functionSignature) => {
   let lastNumberOfResults
   while (lastNumberOfResults === pageSize || page === 0) {
     const results = (await (await fetch(
-      `https://api.etherscan.io/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&page=${page}&offset=${pageSize}&sort=asc&apikey=${
-        process.env.ETHERSCAN_API_KEY
-      }`
+      `https://api.etherscan.io/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&page=${page}&offset=${pageSize}&sort=asc&apikey=${process.env.ETHERSCAN_API_KEY}`
     )).json()).result
 
     lastNumberOfResults = results.length
